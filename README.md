@@ -2,6 +2,10 @@
 
 Phase 1 provides the shared Flask project foundation for the team.
 
+## Phase 2 database files
+
+The MySQL table design and setup instructions are in [database/README.md](database/README.md).
+
 ## Run locally
 
 1. Create and activate the virtual environment:
