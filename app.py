@@ -1,10 +1,12 @@
 """Entry point for the Intelligent Data Privacy Management System."""
 
 from flask import Flask, jsonify, render_template
+from werkzeug.exceptions import RequestEntityTooLarge
 from sqlalchemy import text
 
 from app_core.auth import auth_bp, current_user
 from app_core.extensions import db
+from app_core.uploads import uploads_bp
 from config import Config
 
 
@@ -17,6 +19,7 @@ def create_app() -> Flask:
         db.init_app(app)
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(uploads_bp)
 
     @app.context_processor
     def inject_current_user():
@@ -45,6 +48,10 @@ def create_app() -> Flask:
                 status="unavailable",
                 message="Flask could not connect to MySQL. Check DATABASE_URL and MySQL Server.",
             ), 503
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def file_too_large(_error):
+        return render_template("upload_error.html"), 413
 
     return app
 

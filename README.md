@@ -33,6 +33,15 @@ The application now supports registration, login, logout, and a protected dashbo
 - Passwords are stored as secure hashes, never as plain text.
 - New accounts receive the `user` role. An administrator role will be managed later through the admin workflow.
 
+## Phase 5: Document upload
+
+Signed-in users can open `http://127.0.0.1:5000/documents` to upload and list their documents.
+
+- Allowed file types: PDF, TXT, and DOCX.
+- Maximum file size: 10 MB.
+- Files are stored using generated names in the local `instance/uploads` folder, while the original name and metadata are saved in MySQL.
+- Uploaded documents are not yet encrypted or scanned. Those are separate upcoming phases.
+
 ## Run locally
 
 1. Create and activate the virtual environment:

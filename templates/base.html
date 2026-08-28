@@ -11,6 +11,7 @@
         <a href="{{ url_for('home') }}">IDPMS</a>
         {% if current_user %}
           <a href="{{ url_for('auth.dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('uploads.documents') }}">My Documents</a>
           <form action="{{ url_for('auth.logout') }}" method="post" style="display: inline;">
             <button type="submit">Log out</button>
           </form>
