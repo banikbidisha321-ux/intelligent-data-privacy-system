@@ -44,3 +44,37 @@ class Document(db.Model):
     )
 
     owner = db.relationship("User", backref="documents")
+    pii_findings = db.relationship(
+        "PiiFinding", backref="document", cascade="all, delete-orphan"
+    )
+    privacy_risk_score = db.relationship(
+        "PrivacyRiskScore", backref="document", uselist=False, cascade="all, delete-orphan"
+    )
+
+
+class PiiFinding(db.Model):
+    """A masked sensitive-data item identified in a document."""
+
+    __tablename__ = "pii_findings"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    document_id = db.Column(db.BigInteger, db.ForeignKey("documents.id"), nullable=False)
+    pii_type = db.Column(db.String(50), nullable=False)
+    redacted_value = db.Column(db.String(255), nullable=False)
+    confidence_score = db.Column(db.Numeric(5, 2), nullable=False)
+    location_reference = db.Column(db.String(100))
+
+
+class PrivacyRiskScore(db.Model):
+    """The latest calculated privacy risk for one document."""
+
+    __tablename__ = "privacy_risk_scores"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    document_id = db.Column(
+        db.BigInteger, db.ForeignKey("documents.id"), nullable=False, unique=True
+    )
+    score = db.Column(db.SmallInteger, nullable=False)
+    risk_level = db.Column(
+        db.Enum("low", "medium", "high", "critical"), nullable=False
+    )

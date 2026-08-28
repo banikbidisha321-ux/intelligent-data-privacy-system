@@ -25,6 +25,9 @@
           <th>Classification</th>
           <th>Encryption</th>
           <th>Scan</th>
+          <th>Privacy risk</th>
+          <th>Masked findings</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -36,6 +39,31 @@
             <td>{{ document.classification }}</td>
             <td>{{ document.encryption_status }}</td>
             <td>{{ document.scan_status }}</td>
+            <td>
+              {% if document.privacy_risk_score %}
+                {{ document.privacy_risk_score.score }}/100 ({{ document.privacy_risk_score.risk_level }})
+              {% else %}
+                Not calculated
+              {% endif %}
+            </td>
+            <td>
+              {% if document.pii_findings %}
+                {% for finding in document.pii_findings %}
+                  {{ finding.pii_type }}: {{ finding.redacted_value }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              {% else %}
+                None yet
+              {% endif %}
+            </td>
+            <td>
+              {% if document.file_type == 'txt' %}
+                <form action="{{ url_for('uploads.scan_document', document_id=document.id) }}" method="post">
+                  <button type="submit">Scan for PII</button>
+                </form>
+              {% else %}
+                TXT only
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>
