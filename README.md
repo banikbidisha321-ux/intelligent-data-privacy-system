@@ -42,6 +42,15 @@ Signed-in users can open `http://127.0.0.1:5000/documents` to upload and list th
 - Files are stored using generated names in the local `instance/uploads` folder, while the original name and metadata are saved in MySQL.
 - Uploaded documents are not yet encrypted or scanned. Those are separate upcoming phases.
 
+## Phase 6: PII detection and privacy risk
+
+For an uploaded TXT file, select **Scan for PII** on the My Documents page.
+
+- Detection covers email addresses, Indian phone numbers, Aadhaar-like numbers, PAN numbers, and Luhn-valid payment-card numbers.
+- The database stores only masked findings such as `XXXX-XXXX-1234`, never the full detected value.
+- The system calculates a score from 0 to 100 and labels it `low`, `medium`, `high`, or `critical`.
+- PDF and DOCX text extraction is deliberately deferred to a later phase.
+
 ## Run locally
 
 1. Create and activate the virtual environment:

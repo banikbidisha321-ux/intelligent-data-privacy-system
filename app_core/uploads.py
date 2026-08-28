@@ -8,7 +8,8 @@ from werkzeug.utils import secure_filename
 
 from app_core.auth import current_user, login_required
 from app_core.extensions import db
-from app_core.models import Document
+from app_core.models import Document, PiiFinding, PrivacyRiskScore
+from app_core.privacy import calculate_risk, classification_for, detect_pii
 
 
 uploads_bp = Blueprint("uploads", __name__)
@@ -81,4 +82,52 @@ def upload_document():
         return redirect(url_for("uploads.documents"))
 
     flash("Document uploaded successfully. It is waiting for encryption and privacy scanning.", "success")
+    return redirect(url_for("uploads.documents"))
+
+
+@uploads_bp.route("/documents/<int:document_id>/scan", methods=["POST"])
+@login_required
+def scan_document(document_id: int):
+    """Scan one owned TXT document and save only masked PII findings."""
+    document = Document.query.filter_by(
+        id=document_id, owner_id=current_user().id
+    ).first_or_404()
+
+    if document.file_type != "txt":
+        flash("PII scanning currently supports TXT files only.", "error")
+        return redirect(url_for("uploads.documents"))
+
+    file_path = Path(current_app.config["UPLOAD_FOLDER"]) / document.stored_filename
+    try:
+        text_content = file_path.read_text(encoding="utf-8", errors="replace")
+        findings = detect_pii(text_content)
+        score, risk_level = calculate_risk(findings)
+
+        PiiFinding.query.filter_by(document_id=document.id).delete()
+        for finding in findings:
+            db.session.add(PiiFinding(document_id=document.id, **finding))
+
+        risk_record = PrivacyRiskScore.query.filter_by(document_id=document.id).first()
+        if risk_record is None:
+            risk_record = PrivacyRiskScore(document_id=document.id, score=score, risk_level=risk_level)
+            db.session.add(risk_record)
+        else:
+            risk_record.score = score
+            risk_record.risk_level = risk_level
+
+        document.scan_status = "completed"
+        document.classification = classification_for(risk_level)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        document.scan_status = "failed"
+        db.session.commit()
+        current_app.logger.exception("Privacy scan failed")
+        flash("The document could not be scanned. Please try again.", "error")
+        return redirect(url_for("uploads.documents"))
+
+    flash(
+        f"Scan complete: {len(findings)} masked PII finding(s); risk score {score}/100 ({risk_level}).",
+        "success",
+    )
     return redirect(url_for("uploads.documents"))
