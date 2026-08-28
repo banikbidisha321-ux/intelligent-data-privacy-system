@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Intelligent Data Privacy Management System{% endblock %}</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="{{ url_for('home') }}">IDPMS</a>
+        {% if current_user %}
+          <a href="{{ url_for('auth.dashboard') }}">Dashboard</a>
+          <form action="{{ url_for('auth.logout') }}" method="post" style="display: inline;">
+            <button type="submit">Log out</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('auth.register') }}">Register</a>
+          <a href="{{ url_for('auth.login') }}">Log in</a>
+        {% endif %}
+      </nav>
+    </header>
+    <main>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <p role="alert" class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
