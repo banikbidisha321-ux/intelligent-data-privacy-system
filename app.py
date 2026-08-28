@@ -3,6 +3,7 @@
 from flask import Flask, jsonify, render_template
 from sqlalchemy import text
 
+from app_core.auth import auth_bp, current_user
 from app_core.extensions import db
 from config import Config
 
@@ -14,6 +15,13 @@ def create_app() -> Flask:
 
     if app.config["SQLALCHEMY_DATABASE_URI"]:
         db.init_app(app)
+
+    app.register_blueprint(auth_bp)
+
+    @app.context_processor
+    def inject_current_user():
+        """Make the signed-in user available to every HTML template."""
+        return {"current_user": current_user()}
 
     @app.route("/")
     def home():

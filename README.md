@@ -24,6 +24,15 @@ The MySQL table design and setup instructions are in [database/README.md](databa
 
 When setup is correct, the status page returns `"connected"`. This phase only verifies a connection; no project features use the database yet.
 
+## Phase 4: User authentication
+
+The application now supports registration, login, logout, and a protected dashboard.
+
+- Open `http://127.0.0.1:5000/register` to create a normal user account.
+- Open `http://127.0.0.1:5000/login` to sign in.
+- Passwords are stored as secure hashes, never as plain text.
+- New accounts receive the `user` role. An administrator role will be managed later through the admin workflow.
+
 ## Run locally
 
 1. Create and activate the virtual environment:
