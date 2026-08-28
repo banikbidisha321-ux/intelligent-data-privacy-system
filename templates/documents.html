@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}My Documents | Intelligent Data Privacy Management System{% endblock %}
+
+{% block content %}
+  <h1>My Documents</h1>
+  <p>Upload PDF, TXT, or DOCX files up to 10 MB.</p>
+
+  <form action="{{ url_for('uploads.upload_document') }}" method="post" enctype="multipart/form-data">
+    <p>
+      <label for="document">Choose a document</label><br>
+      <input id="document" name="document" type="file" accept=".pdf,.txt,.docx" required>
+    </p>
+    <button type="submit">Upload document</button>
+  </form>
+
+  <h2>Uploaded documents</h2>
+  {% if documents %}
+    <table>
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Type</th>
+          <th>Size</th>
+          <th>Classification</th>
+          <th>Encryption</th>
+          <th>Scan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for document in documents %}
+          <tr>
+            <td>{{ document.original_filename }}</td>
+            <td>{{ document.file_type|upper }}</td>
+            <td>{{ document.file_size_bytes }} bytes</td>
+            <td>{{ document.classification }}</td>
+            <td>{{ document.encryption_status }}</td>
+            <td>{{ document.scan_status }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>You have not uploaded any documents yet.</p>
+  {% endif %}
+{% endblock %}

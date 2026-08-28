@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}File Too Large | Intelligent Data Privacy Management System{% endblock %}
+
+{% block content %}
+  <h1>File too large</h1>
+  <p>Choose a PDF, TXT, or DOCX file that is 10 MB or smaller.</p>
+  <p><a href="{{ url_for('uploads.documents') }}">Return to My Documents</a></p>
+{% endblock %}
