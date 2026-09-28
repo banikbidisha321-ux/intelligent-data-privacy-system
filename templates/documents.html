@@ -37,7 +37,14 @@
             <td>{{ document.file_type|upper }}</td>
             <td>{{ document.file_size_bytes }} bytes</td>
             <td>{{ document.classification }}</td>
-            <td>{{ document.encryption_status }}</td>
+            <td>
+              {{ document.encryption_status }}
+              {% if document.encryption_status == 'pending' %}
+                <form action="{{ url_for('uploads.encrypt_document', document_id=document.id) }}" method="post">
+                  <button type="submit">Encrypt now</button>
+                </form>
+              {% endif %}
+            </td>
             <td>{{ document.scan_status }}</td>
             <td>
               {% if document.privacy_risk_score %}
