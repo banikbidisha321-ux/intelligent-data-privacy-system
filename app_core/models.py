@@ -1,6 +1,7 @@
 """Database models used by the Flask application."""
 
 from app_core.extensions import db
+from sqlalchemy import text
 
 
 class User(db.Model):
@@ -50,6 +51,9 @@ class Document(db.Model):
     privacy_risk_score = db.relationship(
         "PrivacyRiskScore", backref="document", uselist=False, cascade="all, delete-orphan"
     )
+    recommendations = db.relationship(
+        "Recommendation", backref="document", cascade="all, delete-orphan"
+    )
 
 
 class PiiFinding(db.Model):
@@ -78,3 +82,36 @@ class PrivacyRiskScore(db.Model):
     risk_level = db.Column(
         db.Enum("low", "medium", "high", "critical"), nullable=False
     )
+
+
+class Recommendation(db.Model):
+    """A risk-based action suggested for a document."""
+
+    __tablename__ = "recommendations"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    document_id = db.Column(db.BigInteger, db.ForeignKey("documents.id"), nullable=False)
+    recommendation_text = db.Column(db.Text, nullable=False)
+    priority = db.Column(db.Enum("low", "medium", "high"), nullable=False)
+    status = db.Column(
+        db.Enum("open", "completed", "dismissed"), nullable=False, default="open"
+    )
+
+
+class AuditLog(db.Model):
+    """A privacy-safe record of a significant user action."""
+
+    __tablename__ = "audit_logs"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    actor_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
+    action = db.Column(db.String(100), nullable=False)
+    target_type = db.Column(db.String(50))
+    target_id = db.Column(db.BigInteger)
+    details = db.Column(db.Text)
+    ip_address = db.Column(db.String(45))
+    created_at = db.Column(
+        db.DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
+    )
+
+    actor = db.relationship("User", backref="audit_logs")

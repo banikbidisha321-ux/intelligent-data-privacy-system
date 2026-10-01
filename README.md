@@ -65,6 +65,12 @@ Copy the printed value after `FERNET_KEY=` in `.env`. Keep this key private: los
 - Existing documents with `pending` encryption can be protected with **Encrypt now**.
 - The PII scanner decrypts a TXT file only in memory for scanning; it does not write a decrypted copy back to disk.
 
+## Phase 8: Recommendations and audit history
+
+- Each completed TXT-file scan creates privacy recommendations based on the risk level and detected PII categories.
+- Open `http://127.0.0.1:5000/activity` while signed in to view account and document activity.
+- Audit entries record action names and safe summaries only; they do not include passwords, encryption keys, document contents, or full PII values.
+
 ## Run locally
 
 1. Create and activate the virtual environment:

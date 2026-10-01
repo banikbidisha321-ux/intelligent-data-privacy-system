@@ -5,6 +5,7 @@ from functools import wraps
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app_core.audit import record_event
 from app_core.extensions import db
 from app_core.models import User
 
@@ -61,6 +62,8 @@ def register():
                 role="user",
             )
             db.session.add(user)
+            db.session.flush()
+            record_event(user.id, "user.registered", "user", user.id, "Account created")
             db.session.commit()
             session.clear()
             session["user_id"] = user.id
@@ -84,6 +87,8 @@ def login():
         if user is None or not user.is_active or not check_password_hash(user.password_hash, password):
             flash("Invalid email or password.", "error")
         else:
+            record_event(user.id, "user.logged_in", "user", user.id, "User authenticated")
+            db.session.commit()
             session.clear()
             session["user_id"] = user.id
             flash("You are logged in.", "success")
@@ -95,6 +100,10 @@ def login():
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
     """End the current user session."""
+    user = current_user()
+    if user is not None:
+        record_event(user.id, "user.logged_out", "user", user.id, "User ended session")
+        db.session.commit()
     session.clear()
     flash("You have been logged out.", "success")
     return redirect(url_for("home"))
