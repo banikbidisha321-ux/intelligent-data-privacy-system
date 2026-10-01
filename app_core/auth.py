@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app_core.audit import record_event
@@ -28,6 +28,22 @@ def login_required(view):
         if current_user() is None:
             flash("Please log in to continue.", "error")
             return redirect(url_for("auth.login"))
+        return view(*args, **kwargs)
+
+    return wrapped_view
+
+
+def admin_required(view):
+    """Require a signed-in administrator before allowing access to a view."""
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        user = current_user()
+        if user is None:
+            flash("Please log in to continue.", "error")
+            return redirect(url_for("auth.login"))
+        if user.role != "admin":
+            flash("Administrator access is required.", "error")
+            return redirect(url_for("auth.dashboard"))
         return view(*args, **kwargs)
 
     return wrapped_view
@@ -59,7 +75,11 @@ def register():
                 full_name=full_name,
                 email=email,
                 password_hash=generate_password_hash(password),
-                role="user",
+                role=(
+                    "admin"
+                    if email == current_app.config["ADMIN_EMAIL"]
+                    else "user"
+                ),
             )
             db.session.add(user)
             db.session.flush()
@@ -87,6 +107,15 @@ def login():
         if user is None or not user.is_active or not check_password_hash(user.password_hash, password):
             flash("Invalid email or password.", "error")
         else:
+            if user.email == current_app.config["ADMIN_EMAIL"] and user.role != "admin":
+                user.role = "admin"
+                record_event(
+                    user.id,
+                    "user.promoted_to_admin",
+                    "user",
+                    user.id,
+                    "Administrator bootstrap account activated",
+                )
             record_event(user.id, "user.logged_in", "user", user.id, "User authenticated")
             db.session.commit()
             session.clear()

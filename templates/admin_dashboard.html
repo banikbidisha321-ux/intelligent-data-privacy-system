@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Intelligent Data Privacy Management System{% endblock %}
+
+{% block content %}
+  <h1>Admin Dashboard</h1>
+  <p><a href="{{ url_for('admin.users') }}">Manage users</a></p>
+
+  <h2>Overview</h2>
+  <ul>
+    <li>Registered users: {{ metrics.users }}</li>
+    <li>Stored documents: {{ metrics.documents }}</li>
+    <li>High or critical-risk documents: {{ metrics.high_risk_documents }}</li>
+    <li>Open privacy recommendations: {{ metrics.open_recommendations }}</li>
+  </ul>
+
+  <h2>Recent documents</h2>
+  {% if recent_documents %}
+    <table>
+      <thead><tr><th>Owner</th><th>Filename</th><th>Classification</th><th>Encryption</th><th>Scan</th></tr></thead>
+      <tbody>
+        {% for document in recent_documents %}
+          <tr>
+            <td>{{ document.owner.email }}</td>
+            <td>{{ document.original_filename }}</td>
+            <td>{{ document.classification }}</td>
+            <td>{{ document.encryption_status }}</td>
+            <td>{{ document.scan_status }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No documents have been uploaded.</p>
+  {% endif %}
+
+  <h2>Recent activity</h2>
+  {% if recent_events %}
+    <table>
+      <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead>
+      <tbody>
+        {% for event in recent_events %}
+          <tr>
+            <td>{{ event.created_at }}</td>
+            <td>{{ event.actor.email if event.actor else 'System' }}</td>
+            <td>{{ event.action }}</td>
+            <td>{{ event.details or '—' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No activity has been recorded yet.</p>
+  {% endif %}
+{% endblock %}

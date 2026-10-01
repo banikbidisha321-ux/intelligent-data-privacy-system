@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from app_core.auth import auth_bp, current_user
 from app_core.activity import activity_bp
+from app_core.admin import admin_bp
 from app_core.extensions import db
 from app_core.uploads import uploads_bp
 from config import Config
@@ -21,6 +22,7 @@ def create_app() -> Flask:
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(activity_bp)
+    app.register_blueprint(admin_bp)
     app.register_blueprint(uploads_bp)
 
     @app.context_processor
