@@ -27,6 +27,7 @@
           <th>Scan</th>
           <th>Privacy risk</th>
           <th>Masked findings</th>
+          <th>Recommendations</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -60,6 +61,15 @@
                 {% endfor %}
               {% else %}
                 None yet
+              {% endif %}
+            </td>
+            <td>
+              {% if document.recommendations %}
+                {% for recommendation in document.recommendations %}
+                  [{{ recommendation.priority }}] {{ recommendation.recommendation_text }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              {% else %}
+                Scan to generate recommendations
               {% endif %}
             </td>
             <td>

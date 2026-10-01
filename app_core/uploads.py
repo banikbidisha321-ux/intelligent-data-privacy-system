@@ -7,10 +7,12 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from werkzeug.utils import secure_filename
 
 from app_core.auth import current_user, login_required
+from app_core.audit import record_event
 from app_core.encryption import EncryptionConfigurationError, decrypt_file, encrypt_file
 from app_core.extensions import db
-from app_core.models import Document, PiiFinding, PrivacyRiskScore
+from app_core.models import Document, PiiFinding, PrivacyRiskScore, Recommendation
 from app_core.privacy import calculate_risk, classification_for, detect_pii
+from app_core.recommendation_engine import generate_recommendations
 
 
 uploads_bp = Blueprint("uploads", __name__)
@@ -77,6 +79,14 @@ def upload_document():
             encryption_status="encrypted",
         )
         db.session.add(document)
+        db.session.flush()
+        record_event(
+            current_user().id,
+            "document.uploaded",
+            "document",
+            document.id,
+            "Document uploaded and encrypted",
+        )
         db.session.commit()
     except EncryptionConfigurationError:
         file_path.unlink(missing_ok=True)
@@ -109,6 +119,13 @@ def encrypt_document(document_id: int):
     try:
         encrypt_file(file_path)
         document.encryption_status = "encrypted"
+        record_event(
+            current_user().id,
+            "document.encrypted",
+            "document",
+            document.id,
+            "Legacy document encrypted",
+        )
         db.session.commit()
     except EncryptionConfigurationError:
         db.session.rollback()
@@ -146,6 +163,7 @@ def scan_document(document_id: int):
         score, risk_level = calculate_risk(findings)
 
         PiiFinding.query.filter_by(document_id=document.id).delete()
+        Recommendation.query.filter_by(document_id=document.id).delete()
         for finding in findings:
             db.session.add(PiiFinding(document_id=document.id, **finding))
 
@@ -159,6 +177,18 @@ def scan_document(document_id: int):
 
         document.scan_status = "completed"
         document.classification = classification_for(risk_level)
+        pii_types = {finding["pii_type"] for finding in findings}
+        for recommendation in generate_recommendations(
+            risk_level, pii_types, document.encryption_status
+        ):
+            db.session.add(Recommendation(document_id=document.id, **recommendation))
+        record_event(
+            current_user().id,
+            "document.scanned",
+            "document",
+            document.id,
+            f"Privacy scan completed with {len(findings)} masked finding(s) and {risk_level} risk",
+        )
         db.session.commit()
     except Exception:
         db.session.rollback()

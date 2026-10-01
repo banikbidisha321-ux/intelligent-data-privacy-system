@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Activity | Intelligent Data Privacy Management System{% endblock %}
+
+{% block content %}
+  <h1>My Activity</h1>
+  <p>This history records important account and document actions without exposing document contents or full PII.</p>
+
+  {% if events %}
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Action</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+          <tr>
+            <td>{{ event.created_at }}</td>
+            <td>{{ event.action }}</td>
+            <td>{{ event.details or '—' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No activity has been recorded for this account yet.</p>
+  {% endif %}
+{% endblock %}
