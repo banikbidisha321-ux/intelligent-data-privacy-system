@@ -71,6 +71,19 @@ Copy the printed value after `FERNET_KEY=` in `.env`. Keep this key private: los
 - Open `http://127.0.0.1:5000/activity` while signed in to view account and document activity.
 - Audit entries record action names and safe summaries only; they do not include passwords, encryption keys, document contents, or full PII values.
 
+## Phase 9: Admin dashboard
+
+1. Add your own registered-account email to the private `.env` file:
+
+   ```text
+   ADMIN_EMAIL=your-registered-email@example.com
+   ```
+
+2. Restart the app and log in with that account. It will be promoted to the first `admin` role.
+3. Open `http://127.0.0.1:5000/admin` to view the administrator dashboard.
+
+Administrators can view project-wide metrics, recent document metadata, audit summaries, and manage other users' roles and active status. They cannot remove their own administrator role or deactivate their own account through the dashboard.
+
 ## Run locally
 
 1. Create and activate the virtual environment:

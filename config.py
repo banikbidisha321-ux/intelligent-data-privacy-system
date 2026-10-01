@@ -16,6 +16,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FERNET_KEY = os.getenv("FERNET_KEY")
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     UPLOAD_FOLDER = Path(__file__).resolve().parent / "instance" / "uploads"
