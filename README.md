@@ -51,6 +51,20 @@ For an uploaded TXT file, select **Scan for PII** on the My Documents page.
 - The system calculates a score from 0 to 100 and labels it `low`, `medium`, `high`, or `critical`.
 - PDF and DOCX text extraction is deliberately deferred to a later phase.
 
+## Phase 7: Encryption at rest
+
+Before running the application, create a Fernet key and add it to your private `.env` file:
+
+```powershell
+.\.venv\Scripts\python.exe -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Copy the printed value after `FERNET_KEY=` in `.env`. Keep this key private: losing it makes encrypted documents unrecoverable, and sharing it allows decryption.
+
+- New documents are encrypted immediately after upload.
+- Existing documents with `pending` encryption can be protected with **Encrypt now**.
+- The PII scanner decrypts a TXT file only in memory for scanning; it does not write a decrypted copy back to disk.
+
 ## Run locally
 
 1. Create and activate the virtual environment:

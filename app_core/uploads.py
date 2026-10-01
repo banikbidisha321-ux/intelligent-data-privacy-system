@@ -7,6 +7,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from werkzeug.utils import secure_filename
 
 from app_core.auth import current_user, login_required
+from app_core.encryption import EncryptionConfigurationError, decrypt_file, encrypt_file
 from app_core.extensions import db
 from app_core.models import Document, PiiFinding, PrivacyRiskScore
 from app_core.privacy import calculate_risk, classification_for, detect_pii
@@ -65,15 +66,22 @@ def upload_document():
             flash("Empty files cannot be uploaded.", "error")
             return redirect(url_for("uploads.documents"))
 
+        encrypt_file(file_path)
+
         document = Document(
             owner_id=current_user().id,
             original_filename=safe_original_name,
             stored_filename=stored_filename,
             file_type=extension,
             file_size_bytes=file_size_bytes,
+            encryption_status="encrypted",
         )
         db.session.add(document)
         db.session.commit()
+    except EncryptionConfigurationError:
+        file_path.unlink(missing_ok=True)
+        flash("Document encryption is not configured. Add FERNET_KEY to .env and restart the app.", "error")
+        return redirect(url_for("uploads.documents"))
     except Exception:
         db.session.rollback()
         file_path.unlink(missing_ok=True)
@@ -81,7 +89,38 @@ def upload_document():
         flash("The document could not be saved. Please try again.", "error")
         return redirect(url_for("uploads.documents"))
 
-    flash("Document uploaded successfully. It is waiting for encryption and privacy scanning.", "success")
+    flash("Document uploaded and encrypted successfully. It is waiting for privacy scanning.", "success")
+    return redirect(url_for("uploads.documents"))
+
+
+@uploads_bp.route("/documents/<int:document_id>/encrypt", methods=["POST"])
+@login_required
+def encrypt_document(document_id: int):
+    """Encrypt one legacy document that was uploaded before Phase 7."""
+    document = Document.query.filter_by(
+        id=document_id, owner_id=current_user().id
+    ).first_or_404()
+
+    if document.encryption_status == "encrypted":
+        flash("This document is already encrypted.", "success")
+        return redirect(url_for("uploads.documents"))
+
+    file_path = Path(current_app.config["UPLOAD_FOLDER"]) / document.stored_filename
+    try:
+        encrypt_file(file_path)
+        document.encryption_status = "encrypted"
+        db.session.commit()
+    except EncryptionConfigurationError:
+        db.session.rollback()
+        flash("Document encryption is not configured. Add FERNET_KEY to .env and restart the app.", "error")
+        return redirect(url_for("uploads.documents"))
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Document encryption failed")
+        flash("The document could not be encrypted. Please try again.", "error")
+        return redirect(url_for("uploads.documents"))
+
+    flash("Document encrypted successfully.", "success")
     return redirect(url_for("uploads.documents"))
 
 
@@ -99,7 +138,10 @@ def scan_document(document_id: int):
 
     file_path = Path(current_app.config["UPLOAD_FOLDER"]) / document.stored_filename
     try:
-        text_content = file_path.read_text(encoding="utf-8", errors="replace")
+        if document.encryption_status == "encrypted":
+            text_content = decrypt_file(file_path).decode("utf-8", errors="replace")
+        else:
+            text_content = file_path.read_text(encoding="utf-8", errors="replace")
         findings = detect_pii(text_content)
         score, risk_level = calculate_risk(findings)
 
