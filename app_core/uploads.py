@@ -13,6 +13,7 @@ from app_core.extensions import db
 from app_core.models import Document, PiiFinding, PrivacyRiskScore, Recommendation
 from app_core.privacy import calculate_risk, classification_for, detect_pii
 from app_core.recommendation_engine import generate_recommendations
+from app_core.access_control import shared_document_grants_for
 
 
 uploads_bp = Blueprint("uploads", __name__)
@@ -33,7 +34,10 @@ def documents():
         .order_by(Document.id.desc())
         .all()
     )
-    return render_template("documents.html", documents=records)
+    shared_grants = shared_document_grants_for(current_user().id)
+    return render_template(
+        "documents.html", documents=records, shared_grants=shared_grants
+    )
 
 
 @uploads_bp.route("/documents/upload", methods=["POST"])

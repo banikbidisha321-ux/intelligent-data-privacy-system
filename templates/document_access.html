@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Access | Intelligent Data Privacy Management System{% endblock %}
+
+{% block content %}
+  <h1>Manage Access: {{ document.original_filename }}</h1>
+  <p><a href="{{ url_for('uploads.documents') }}">Return to My Documents</a></p>
+
+  <h2>Grant or update access</h2>
+  {% if eligible_users %}
+    <form action="{{ url_for('access.grant_access', document_id=document.id) }}" method="post">
+      <p>
+        <label for="user_id">User</label><br>
+        <select id="user_id" name="user_id" required>
+          {% for user in eligible_users %}
+            <option value="{{ user.id }}">{{ user.full_name }} ({{ user.email }})</option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label for="permission">Permission</label><br>
+        <select id="permission" name="permission">
+          <option value="view">view — metadata only</option>
+          <option value="download">download — may download</option>
+          <option value="manage">manage — may grant/revoke access and download</option>
+        </select>
+      </p>
+      <button type="submit">Save permission</button>
+    </form>
+  {% else %}
+    <p>There are no other active users available to share with.</p>
+  {% endif %}
+
+  <h2>Current access</h2>
+  {% if grants %}
+    <table>
+      <thead><tr><th>User</th><th>Permission</th><th>Granted by</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for grant in grants %}
+          <tr>
+            <td>{{ grant.user.full_name }} ({{ grant.user.email }})</td>
+            <td>{{ grant.permission }}</td>
+            <td>{{ grant.granted_by_user.full_name if grant.granted_by_user else 'System' }}</td>
+            <td>
+              <form action="{{ url_for('access.revoke_access', document_id=document.id, grant_id=grant.id) }}" method="post">
+                <button type="submit">Revoke</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>This document has not been shared with another user.</p>
+  {% endif %}
+{% endblock %}

@@ -84,6 +84,16 @@ Copy the printed value after `FERNET_KEY=` in `.env`. Keep this key private: los
 
 Administrators can view project-wide metrics, recent document metadata, audit summaries, and manage other users' roles and active status. They cannot remove their own administrator role or deactivate their own account through the dashboard.
 
+## Phase 10: Document access control
+
+Document owners, administrators, and users with `manage` permission can open **Manage access** to grant or revoke permissions.
+
+- `view`: see shared-document metadata only.
+- `download`: download the encrypted document after in-memory decryption.
+- `manage`: download and manage other users' access.
+
+Every permission change and authorized download is written to the audit history. Downloads are allowed only for documents marked as encrypted.
+
 ## Run locally
 
 1. Create and activate the virtual environment:
