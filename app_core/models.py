@@ -54,6 +54,9 @@ class Document(db.Model):
     recommendations = db.relationship(
         "Recommendation", backref="document", cascade="all, delete-orphan"
     )
+    access_grants = db.relationship(
+        "DocumentAccess", backref="document", cascade="all, delete-orphan"
+    )
 
 
 class PiiFinding(db.Model):
@@ -115,3 +118,22 @@ class AuditLog(db.Model):
     )
 
     actor = db.relationship("User", backref="audit_logs")
+
+
+class DocumentAccess(db.Model):
+    """A permission granted to one user for one document."""
+
+    __tablename__ = "document_access"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    document_id = db.Column(db.BigInteger, db.ForeignKey("documents.id"), nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
+    permission = db.Column(db.Enum("view", "download", "manage"), nullable=False)
+    granted_by = db.Column(db.BigInteger, db.ForeignKey("users.id"))
+    granted_at = db.Column(
+        db.DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
+    )
+    expires_at = db.Column(db.DateTime)
+
+    user = db.relationship("User", foreign_keys=[user_id], backref="shared_access")
+    granted_by_user = db.relationship("User", foreign_keys=[granted_by])

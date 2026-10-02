@@ -73,6 +73,8 @@
               {% endif %}
             </td>
             <td>
+              <p><a href="{{ url_for('access.download_document', document_id=document.id) }}">Download</a></p>
+              <p><a href="{{ url_for('access.manage_access', document_id=document.id) }}">Manage access</a></p>
               {% if document.file_type == 'txt' %}
                 <form action="{{ url_for('uploads.scan_document', document_id=document.id) }}" method="post">
                   <button type="submit">Scan for PII</button>
@@ -87,5 +89,33 @@
     </table>
   {% else %}
     <p>You have not uploaded any documents yet.</p>
+  {% endif %}
+
+  <h2>Documents shared with me</h2>
+  {% if shared_grants %}
+    <table>
+      <thead><tr><th>Filename</th><th>Owner</th><th>Permission</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for grant in shared_grants %}
+          <tr>
+            <td>{{ grant.document.original_filename }}</td>
+            <td>{{ grant.document.owner.full_name }}</td>
+            <td>{{ grant.permission }}</td>
+            <td>
+              {% if grant.permission in ['download', 'manage'] %}
+                <a href="{{ url_for('access.download_document', document_id=grant.document.id) }}">Download</a>
+              {% else %}
+                Metadata only
+              {% endif %}
+              {% if grant.permission == 'manage' %}
+                | <a href="{{ url_for('access.manage_access', document_id=grant.document.id) }}">Manage access</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No documents have been shared with you.</p>
   {% endif %}
 {% endblock %}
