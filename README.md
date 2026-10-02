@@ -84,6 +84,10 @@ Copy the printed value after `FERNET_KEY=` in `.env`. Keep this key private: los
 
 Administrators can view project-wide metrics, recent document metadata, audit summaries, and manage other users' roles and active status. They cannot remove their own administrator role or deactivate their own account through the dashboard.
 
+## Phase 11: Dashboard and final testing
+
+The responsive dashboard styling is in `static/style.css`. A complete review checklist is available in `TESTING_CHECKLIST.md`.
+
 ## Phase 10: Document access control
 
 Document owners, administrators, and users with `manage` permission can open **Manage access** to grant or revoke permissions.

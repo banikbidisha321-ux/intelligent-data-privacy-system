@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app_core.audit import record_event
 from app_core.extensions import db
-from app_core.models import User
+from app_core.models import Document, PrivacyRiskScore, Recommendation, User
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -142,4 +142,16 @@ def logout():
 @login_required
 def dashboard():
     """Show a page available only to signed-in users."""
-    return render_template("dashboard.html", user=current_user())
+    user = current_user()
+    metrics = {
+        "documents": Document.query.filter_by(owner_id=user.id).count(),
+        "scanned": Document.query.filter_by(owner_id=user.id, scan_status="completed").count(),
+        "high_risk": PrivacyRiskScore.query.join(Document).filter(
+            Document.owner_id == user.id,
+            PrivacyRiskScore.risk_level.in_(["high", "critical"]),
+        ).count(),
+        "recommendations": Recommendation.query.join(Document).filter(
+            Document.owner_id == user.id, Recommendation.status == "open"
+        ).count(),
+    }
+    return render_template("dashboard.html", user=user, metrics=metrics)

@@ -3,7 +3,21 @@
 {% block title %}Dashboard | Intelligent Data Privacy Management System{% endblock %}
 
 {% block content %}
-  <h1>Welcome, {{ user.full_name }}</h1>
-  <p>You are signed in as a <strong>{{ user.role }}</strong>.</p>
-  <p>Your protected dashboard is ready for the document and privacy features in later phases.</p>
+  <section class="page-heading">
+    <p class="eyebrow">Personal privacy overview</p>
+    <h1>Welcome back, {{ user.full_name }}</h1>
+    <p>Role: <strong>{{ user.role }}</strong> · Monitor your documents and respond to privacy risks.</p>
+  </section>
+
+  <section class="metric-grid">
+    <article class="metric-card"><span>My documents</span><strong>{{ metrics.documents }}</strong></article>
+    <article class="metric-card"><span>Scans completed</span><strong>{{ metrics.scanned }}</strong></article>
+    <article class="metric-card metric-alert"><span>High-risk documents</span><strong>{{ metrics.high_risk }}</strong></article>
+    <article class="metric-card"><span>Open recommendations</span><strong>{{ metrics.recommendations }}</strong></article>
+  </section>
+
+  <section class="action-panel">
+    <div><h2>What would you like to do?</h2><p>Upload a document, inspect risk findings, or review your privacy activity.</p></div>
+    <div class="action-links"><a class="button" href="{{ url_for('uploads.documents') }}">My documents</a><a class="button button-secondary" href="{{ url_for('activity.activity') }}">View activity</a></div>
+  </section>
 {% endblock %}

@@ -3,12 +3,22 @@
 {% block title %}Home | Intelligent Data Privacy Management System{% endblock %}
 
 {% block content %}
-  <h1>Intelligent Data Privacy Management System</h1>
-  <p>Protect documents, identify privacy risks, and keep access accountable.</p>
+  <section class="hero">
+    <p class="eyebrow">Privacy intelligence for your documents</p>
+    <h1>Protect data before it becomes a privacy risk.</h1>
+    <p class="hero-copy">Upload documents securely, identify sensitive information, calculate risk, and keep every action accountable.</p>
 
-  {% if current_user %}
-    <p><a href="{{ url_for('auth.dashboard') }}">Open your dashboard</a></p>
-  {% else %}
-    <p><a href="{{ url_for('auth.register') }}">Create an account</a> or <a href="{{ url_for('auth.login') }}">log in</a>.</p>
-  {% endif %}
+    {% if current_user %}
+      <a class="button" href="{{ url_for('auth.dashboard') }}">Open dashboard</a>
+    {% else %}
+      <a class="button" href="{{ url_for('auth.register') }}">Create an account</a>
+      <a class="button button-secondary" href="{{ url_for('auth.login') }}">Log in</a>
+    {% endif %}
+  </section>
+
+  <section class="feature-grid">
+    <article class="feature-card"><span>01</span><h2>Detect PII</h2><p>Identify and mask sensitive information in uploaded text files.</p></article>
+    <article class="feature-card"><span>02</span><h2>Calculate risk</h2><p>Turn findings into a privacy score and practical recommendations.</p></article>
+    <article class="feature-card"><span>03</span><h2>Control access</h2><p>Encrypt documents, manage sharing, and retain an audit trail.</p></article>
+  </section>
 {% endblock %}
